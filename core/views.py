@@ -5,7 +5,7 @@ from core.models import Profile,Task
 from django.http import JsonResponse
 from rest_framework import status
 # Create your views here.
-@csrf_exempt
+
 @csrf_exempt
 def consume(request):
     if request.method == 'POST':
@@ -14,7 +14,7 @@ def consume(request):
         data = json.loads(request.body)   
         
         method=data.get('method')
-
+        
         for row in data.get('data'):
             
             task=Task.objects.all().filter(uuid=data['task_uuid'])
@@ -53,8 +53,18 @@ def consume(request):
                         create_request_log(row)
         return JsonResponse(data={'status':'success'} ,status=status.HTTP_200_OK)
                 
-            
-            
+@csrf_exempt            
+def sync(request):
+  
+    if request.method == 'POST':
+        from django.forms import model_to_dict
+        
+        data = json.loads(request.body)   
+        
+        method=data.get('method')
+        
+        for row in data.get('data'):   
+            print(row.get('object_type'))         
 
             
                 
