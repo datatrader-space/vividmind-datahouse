@@ -6,7 +6,7 @@ def handle_instagram_profile(row,task):
         p=p[0]
     else:
         p=Profile(username=row.get('username'),service=row['service'])
-    update_fields=['gender','country','type','is_private','account_type','show_account_transparency_details','id','fbid_v2','is_unpublished','full_name','follwowers_count','following_count','post_count','profile_pic','profile_picture']
+    update_fields=['gender','country','type','is_private','account_type','show_account_transparency_details','id','rest_id','fbid_v2','is_unpublished','full_name','follwowers_count','following_count','post_count','profile_pic','profile_picture']
     for key in list(row.keys()):
         if key in update_fields:
             print(type(row[key]))

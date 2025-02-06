@@ -12,25 +12,37 @@ SERVICES = (
     ('openai','OpenAI'),
     ('audience','Audience')
 )
+class Device(models.Model):
+    uuid=models.UUIDField(blank=False,null=False,unique=True)
+class Server(models.Model):
+    uuid=models.UUIDField(blank=False,null=False,unique=True)
+class Proxy(models.Model):
+    uuid=models.UUIDField(blank=False,null=False,unique=True)
+class Interaction(models.Model):
+    uuid=models.UUIDField(blank=False,null=False,unique=True)
 class Task(models.Model):
+    uuid=models.UUIDField(blank=False,null=False,unique=True)
+    ref_id=models.UUIDField(blank=True,null=True)
+    def __str__(self):
+        return str(self.uuid)
+class ScrapeTask(models.Model):
     uuid=models.UUIDField(blank=False,null=False,unique=True)
 
     def __str__(self):
         return str(self.uuid)
-class Campaign(models.Model):
+class BulkCampaign(models.Model):
     
     uuid=models.UUIDField(blank=False,null=False,unique=True)
     # ... other campaign fields ...
 
 class Audience(models.Model):
     uuid=models.UUIDField(blank=False,null=False,unique=True)
-    Profiles = models.ManyToManyField('Profile', related_name='audiences')
-    campaigns = models.ManyToManyField(Campaign, related_name='audiences')
-    tasks=models.ManyToManyField(Task)
+    
+    tasks=models.ManyToManyField(Task,blank=False)
 
-class Bot(models.Model):
+class ChildBot(models.Model):
     uuid=models.UUIDField(blank=False,null=False,unique=True)
-    campaign=models.ForeignKey(Campaign,blank=True,null=True,on_delete=models.SET_NULL)
+    campaign=models.ForeignKey(BulkCampaign,blank=True,null=True,on_delete=models.SET_NULL)
 class Profile(models.Model):
     username=models.CharField(blank=False,null=False,max_length=100)
     info=models.JSONField(default={},blank=False,null=True)
@@ -51,6 +63,7 @@ class Location(models.Model):
     lat = models.DecimalField(max_digits=9, decimal_places=6,blank=True,null=True)
     lng = models.DecimalField(max_digits=9, decimal_places=6,blank=True,null=True)
     name = models.CharField(max_length=255)
+    
     class Meta:
         unique_together = ('rest_id', 'service') 
     def __str__(self):
@@ -116,7 +129,7 @@ class CommentText(models.Model):
     tasks=models.ManyToManyField(Task)
 class LeadAssignment(models.Model):
     Profile = models.OneToOneField(Profile, on_delete=models.CASCADE)
-    bot = models.ForeignKey(Bot, on_delete=models.SET_NULL, null=True, blank=True)
+    bot = models.ForeignKey(ChildBot, on_delete=models.SET_NULL, null=True, blank=True)
     locked_at = models.DateTimeField(null=True, blank=True)
     last_interaction_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=50, choices=[('pending', 'Pending'), ('processed', 'Processed'), ('failed', 'Failed')], default='pending')
@@ -132,7 +145,7 @@ class Log(models.Model):
     datetime = models.DateTimeField(default=timezone.now)
     service = models.CharField(max_length=50)
     run_id =models.CharField(max_length=36, blank=True,null=True, editable=False)
-     
+    uuid=models.UUIDField(blank=False,null=True,unique=True)
 
     def __str__(self):
         return f"{self.type} for {self.bot_username} - {self.task}" 
@@ -142,6 +155,7 @@ class Output(models.Model):
     Represents an output associated with a task. 
     A task can have multiple outputs.
     """
+    uuid = models.CharField(max_length=36, unique=True, default=get_random_string, editable=False)
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='outputs') 
     run_id=models.CharField(max_length=36, unique=True, blank=False,null=False, editable=False)
     # Add other output related fields here (e.g., output_data, output_type, created_at)
@@ -174,3 +188,12 @@ class RequestLog(models.Model):
 
     def __str__(self):
         return f"RequestLog for task {self.task}"
+class AnalysisResult(models.Model):
+    name = models.CharField(max_length=255, db_index=True)  # Name of the analysis (unique if needed)
+    datetime = models.DateTimeField(auto_now_add=True, db_index=True)  # When the analysis was run
+    data = models.JSONField()  # The analysis results as JSON
+    range_start = models.DateTimeField(null=True, blank=True, db_index=True) # Start of the time range analyzed
+    range_end = models.DateTimeField(null=True, blank=True, db_index=True)  # End of the time range analyzed
+
+    class Meta:
+        ordering = ['-datetime'] # Order by latest analysis first

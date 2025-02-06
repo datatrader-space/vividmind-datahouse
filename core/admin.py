@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Profile,Post,PostMedia,PostText,Follow,Task,Location,Log,RequestLog
+from .models import Profile,Post,PostMedia,PostText,Follow,Task,Location,Log,RequestLog,BulkCampaign,Audience,Output,Server,ChildBot
 admin.site.register(Post)
 admin.site.register(PostText)
 admin.site.register(PostMedia)
@@ -7,6 +7,11 @@ admin.site.register(Follow)
 admin.site.register(Task)
 admin.site.register(Location)
 admin.site.register(RequestLog)
+admin.site.register(BulkCampaign)
+admin.site.register(Audience)
+admin.site.register(Output)
+admin.site.register(ChildBot)
+admin.site.register(Server)
 @admin.register(Log)
 class LogAdmin(admin.ModelAdmin):
     list_display = ('type', 'run_id', 'datetime')
