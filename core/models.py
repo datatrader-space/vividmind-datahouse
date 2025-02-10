@@ -158,13 +158,13 @@ class Output(models.Model):
     uuid = models.CharField(max_length=36, unique=True, default=get_random_string, editable=False)
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='outputs') 
     run_id=models.CharField(max_length=36, unique=True, blank=False,null=False, editable=False)
-    # Add other output related fields here (e.g., output_data, output_type, created_at)
+    block_name=models.CharField(max_length=500,blank=True,null=True)
     output_data = models.JSONField(blank=False, null=False) 
     created_at = models.DateTimeField(auto_now_add=True)
     consumed_by=models.ManyToManyField(Task)
 
     def __str__(self):
-        return f"Output for Task: {self.task.name}" 
+        return f"Output for Task: {self.task.uuid}" 
     
 from django.db import models
 from django.utils import timezone

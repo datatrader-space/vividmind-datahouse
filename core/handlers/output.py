@@ -19,37 +19,30 @@ def create_output(payload):
         ValueError: If any of the required fields are missing in the payload.
     """
 
-    required_fields = ['task', 'output_data']
-
+    required_fields = ['task_uuid', 'output_data']
+    print('i was ')
     for field in required_fields:
         if field not in payload:
             raise ValueError(f"Missing required field: {field}")
 
     # Fetch or create the associated Task
-    task_id = payload.get('task') 
+    task_id = payload.get('task_uuid') 
     if task_id:
         try:
             task = Task.objects.get(uuid=task_id)
         except Task.DoesNotExist:
             raise ValueError(f"Task with ID {task_id} not found.")
     else:
-        task = Task.objects.create() 
+        task = Task.objects.create(uuid=task_id)
+        task.save() 
 
-    try:
-        # Attempt to load the data as JSON
-        data = json.loads(payload.get('data', '{}')) 
-    except json.JSONDecodeError:
-        # If JSON decoding fails, store the raw data in the text field
-        data = {}
-        data_text = payload.get('data', '') 
-    else:
-        data_text = None  # Clear the text field if JSON parsing succeeds
+  
 
-    # Create the RequestLog object
-    output=Output.objects.all().filter(task)
+
     output= Output(
-        output_data=payload.get('data'),
+        output_data=payload.get('output_data'),
         run_id=payload.get('run_id'),
+        block_name=payload.get('block_name',''),
         task=task,
     )
     output.save()

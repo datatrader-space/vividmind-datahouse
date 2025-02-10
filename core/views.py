@@ -32,24 +32,24 @@ import ast # if you use it
 def consume(request):
     if request.method == 'POST':
         from django.forms import model_to_dict
+        print(request.body)
+        data = json.loads(request.body) 
+       
         
-        data = json.loads(request.body)   
-        
-        method=data.get('method')
-        print(data)
-        for row in data.get('data'):
+        for row in data:
             print(row)
-            task=Task.objects.all().filter(uuid=data['task_uuid'])
+            print(type(row))
+            task=Task.objects.all().filter(uuid=row['task_uuid'])
             if task:
                 task=task[0]
             else:
-                task=Task(uuid=data['task_uuid'])
+                task=Task(uuid=row['task_uuid'])
                 task.save()
             if row.get('service'):
                 service=row.get('service')
                 object_type=row.get('object_type')
                 print(object_type)
-                row['task_uuid']=data['task_uuid']
+                
                 print(object_type)
                 if service == 'instagram':
                     if object_type=='profile' or object_type=='user_followers' or object_type=='user':
@@ -225,8 +225,197 @@ def sync(request):
             return Response(response_data, status=status.HTTP_207_MULTI_STATUS) # 207 for partial success
         else:
             return Response(response_data, status=status.HTTP_200_OK)
-@csrf_exempt                
+
+@csrf_exempt 
 def provide(request):
+    if request.method == 'POST':
+        from django.forms import model_to_dict
+        from django.db.models import Q
+        from core.models import BulkCampaign,Profile,Task,ScrapeTask,Audience
+        
+        data = json.loads(request.body)   
+        
+        method=data.get('method')
+
+        
+
+        
+
+        print(data)
+        filters=data.get('filters')
+        try:
+            filters = data.get('filters')
+            object_type = data.get('object_type')
+            required_fields = data.get('required_fields')
+
+            # Dynamically retrieve the model:
+            try:
+                model = apps.get_model('core', object_type)  # Replace 'your_app_name'
+            except LookupError:  # Handle invalid app/model name
+                return JsonResponse({"error": f"Model '{object_type}' not found in 'your_app_name'"}, status=400)
+
+            queryset = model.objects.all()
+
+            if filters:
+                q, _, _ = json_to_django_q(filters, model)
+                if q is None:
+                    return JsonResponse({"error": "Invalid filter payload"}, status=400)
+                queryset = queryset.filter(q)
+
+            #print(queryset)
+            results = []
+            for obj in queryset:
+                data_dict = {}
+                if required_fields:
+                    for field in required_fields:
+                        try:
+                            if "__" in field:  # Check if it's a JSONField lookup
+                                field_parts = field.split("__")
+                                json_field_name = field_parts[0]
+                                nested_keys = field_parts[1:]
+                                json_data = getattr(obj, json_field_name)
+
+                                if json_data: # check if json data is not empty
+                                    current_level = json_data
+                                    for key in nested_keys:
+                                        if isinstance(current_level, dict) and key in current_level:
+                                            current_level = current_level[key]
+                                        elif isinstance(current_level, list): # handle list in json field
+                                            values = []
+                                            for item in current_level:
+                                                if isinstance(item, dict) and key in item:
+                                                    values.append(item[key])
+                                            current_level = values # update the current level
+                                        else:
+                                            current_level = None # handle missing keys in nested json field
+                                            break
+                                    if current_level is not None:
+                                        data_dict[field] = current_level
+                                    else:
+                                        data_dict[field] = None # if nested key is missing in json field
+                                else:
+                                    data_dict[field] = getattr(obj, field)  # Regular field
+                            else:
+                                data_dict[field] = getattr(obj, field) # Regular field
+                        except AttributeError:
+                            required_fields.remove(field) # remove field from required fields
+
+                        
+                            
+
+                
+                                #return JsonResponse({"error": f"Field '{field}' not found on model '{model._meta.model_name}'"}, status=400) # added model name to error message
+                else:  # Default behavior (include all fields)
+                  
+                    for field in [f.name for f in model._meta.fields]:
+                        data_dict[field] = getattr(obj, field)
+                
+                results.append(data_dict)
+
+            #print(results)
+            return JsonResponse({"data": results}, status=200)
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return JsonResponse({"error": "An error occurred"}, status=500)  
+from django.db import models
+
+def serialize_related_fields(queryset, required_fields=None):
+    """Serializes model instances, handling FK and M2M relationships."""
+    results = []
+    for obj in queryset:
+        data_dict = {}
+
+        if required_fields:
+            for field in required_fields:
+                try:
+                    if "__" in field:  # JSONField or related field lookup
+                        field_parts = field.split("__")
+                        first_part = field_parts[0]  # Check if it is a related field
+                        if "." in field: # Check if it is a related field
+                            related_field_parts = field.split(".")
+                            related_model_field = related_field_parts[-1] # the field to get from related model
+                            related_field_path = "__".join(related_field_parts[:-1]) # the path to related model
+                            related_obj = getattr(obj, related_field_path)
+
+                            if related_obj: # if related object exists
+                                if isinstance(related_obj, models.Model): # foreign key
+                                    data_dict[field] = getattr(related_obj, related_model_field)
+                                elif isinstance(related_obj.all(), models.QuerySet): # many to many
+                                    related_data = []
+                                    for related_item in related_obj.all():
+                                        related_data.append(getattr(related_item, related_model_field))
+                                    data_dict[field] = related_data
+                                else:
+                                    data_dict[field] = None # if not foreign key or m2m
+                            else:
+                                data_dict[field] = None # if related object does not exist
+                        elif "." not in field and hasattr(obj, first_part): # Regular field
+                            data_dict[field] = getattr(obj, field)
+                        else: # JSONField lookup
+                            json_field_name = field_parts[0]
+                            nested_keys = field_parts[1:]
+                            json_data = getattr(obj, json_field_name)
+
+                            if json_data:  # Check if JSON data is not empty
+                                current_level = json_data
+                                for key in nested_keys:
+                                    if isinstance(current_level, dict) and key in current_level:
+                                        current_level = current_level[key]
+                                    elif isinstance(current_level, list):  # Handle list in JSON field
+                                        values = []
+                                        for item in current_level:
+                                            if isinstance(item, dict) and key in item:
+                                                values.append(item[key])
+                                        current_level = values  # Update the current level
+                                    else:
+                                        current_level = None  # Handle missing keys in nested JSON field
+                                        break
+                                if current_level is not None:
+                                    data_dict[field] = current_level
+                                else:
+                                    data_dict[field] = None  # If nested key is missing in JSON field
+                            else:
+                                data_dict[field] = getattr(obj, field)  # Regular field
+                    else:  # Default behavior (include all fields)
+                        for field in [f.name for f in obj._meta.fields]:
+                            data_dict[field] = getattr(obj, field)
+
+                        for related_field in obj._meta.related_objects:  # Handle related fields
+                            related_name = related_field.name
+                            related_objs = getattr(obj, related_name)
+
+                            if isinstance(related_objs, models.Manager):  # Many-to-Many
+                                related_data = []
+                                for related_obj in related_objs.all():
+                                    related_data.append({f.name: getattr(related_obj, f.name) for f in related_obj._meta.fields})
+                                data_dict[related_name] = related_data
+                            elif isinstance(related_objs, models.Model):  # Foreign Key
+                                data_dict[related_name] = {f.name: getattr(related_objs, f.name) for f in related_objs._meta.fields}
+
+                except AttributeError:
+                    if field in required_fields: # Only remove if the field is in required_fields
+                        required_fields.remove(field)
+
+        elif not required_fields: # if required fields is None
+            for field in [f.name for f in obj._meta.fields]:
+                data_dict[field] = getattr(obj, field)
+
+            for related_field in obj._meta.related_objects:  # Handle related fields
+                related_name = related_field.name
+                related_objs = getattr(obj, related_name)
+
+                if isinstance(related_objs, models.Manager):  # Many-to-Many
+                    related_data = []
+                    for related_obj in related_objs.all():
+                        related_data.append({f.name: getattr(related_obj, f.name) for f in related_obj._meta.fields})
+                    data_dict[related_name] = related_data
+                elif isinstance(related_objs, models.Model):  # Foreign Key
+                    data_dict[related_name] = {f.name: getattr(related_objs, f.name) for f in related_objs._meta.fields}
+
+        results.append(data_dict)
+    return results             
+""" def provide(request):
     print(request)
     if request.method == 'POST':
         from django.forms import model_to_dict
@@ -299,7 +488,7 @@ def provide(request):
 
                 query = Q()
                 query=json_to_django_q(internal_key_filters,Profile)
-                """ for filter in internal_key_filters:
+                for filter in internal_key_filters:
                     
 
             # Iterate over the filters and build the query dynamically
@@ -317,13 +506,242 @@ def provide(request):
                         else:
                             # Default to exact match
                             query &= Q(**{field: value})
-                print(query) """
+                print(query) 
                 print(query)
                 profiles=profiles.filter(query)
                 print(profiles)
             return JsonResponse(status=200,data={'data':list(profiles.values())})
+from django.db import models """
+from django.db.models import Q, Sum, F, Count, Avg, Max, Min  # Add other aggregations as needed
+
+from django.db import models
+from django.db.models import Q, Sum, F, Count, Avg, Max, Min  # Add other aggregations as needed
+
+def json_to_django_q(payload, model):
+    """Converts a JSON payload to a Django Q object for filtering.
+
+    Handles nested conditions (OR, AND, EXCLUDE), dot notation for lookups,
+    lists of values, and various aggregation functions.  Includes robust
+    error handling and input validation.
+
+    Args:
+        payload (dict): The JSON payload containing filter conditions.
+        model (Model): The Django model to query.
+
+    Returns:
+        tuple: (Q object, order_by fields, annotations) or (None, None, None) on error.
+    """
+
+    q_object = Q()
+    order_by_fields = None
+    annotations = None
+
+    if not payload or not isinstance(payload, dict):
+        return None, None, None  # Handle invalid payload
+
+    try:
+        for key, value in payload.items():
+            if key in ("or_conditions", "and_conditions", "exclude"):
+                if not isinstance(value, list) or not all(isinstance(x, dict) for x in value):
+                    raise ValueError(f"'{key}' must be a list of dictionaries.")
+
+                sub_q = Q()
+                for condition in value:
+                    condition_q = Q()
+                    for k, v in condition.items():
+                        field, lookup = k.split(".") if "." in k else (k, "exact")
+                        lookup_operator = "__" + lookup 
+                        filter_kwargs = {field + lookup_operator: v}
+                        condition_q &= Q(**filter_kwargs)  # Combine within the condition
+
+                    if key == "or_conditions":
+                        sub_q |= condition_q
+                    elif key == "and_conditions":
+                        sub_q &= condition_q
+                    elif key == "exclude":
+                        sub_q &= ~condition_q
+
+                if key == "or_conditions":
+                    q_object |= sub_q
+                elif key == "and_conditions":
+                    q_object &= sub_q
+                elif key == "exclude":
+                    q_object &= ~sub_q
+
+            elif key == "order_by":
+                if not isinstance(value, list):
+                    raise ValueError("'order_by' must be a list.")
+
+                order_by_fields = []
+                for field_str in value:
+                    prefix = "-" if field_str.startswith("-") else ""
+                    field_name = field_str[1:] if field_str.startswith("-") else field_str
+
+                    try:
+                        model._meta.get_field(field_name)  # More robust field check
+                    except models.FieldDoesNotExist:
+                        raise ValueError(f"Invalid order_by field '{field_str}' for model '{model.__name__}'.")
+                    else:
+                        order_by_fields.append(f"{prefix}{field_name}")
+
+
+            elif key == "annotations":
+                if not isinstance(value, dict):
+                    raise ValueError("'annotations' must be a dictionary.")
+
+                annotations = {}
+                for annotation_name, aggregation in value.items():
+                    if not isinstance(aggregation, (Sum, Count, Avg, Max, Min, F)): # check if aggregation is valid
+                        raise ValueError(f"Invalid aggregation function '{aggregation}' for annotation '{annotation_name}'.")
+                    annotations[annotation_name] = aggregation
+
+
+               
+
+            else:  # Regular field lookups
+                if "__" in key:
+                    field, lookup =key.split(".") if "." in key else (key, "exact")
+                else:
+                    field, lookup = key.split(".") if "." in key else (key, "exact")
+                if lookup == "equal":  # Add this check
+                    lookup = "exact" 
+                lookup_operator = "__" + lookup 
+                #
+                print(lookup_operator)
+                print(field)
+                if '__' in field:
+                    field_name=field.split('__')[0]
+                else:
+                    field_name=field
+                try:
+                    model._meta.get_field(field_name)  # More robust field check
+                except Exception as e:
+                    continue
+                print(lookup)
+                print(value)
+                if isinstance(value, list) and lookup != "in":  # List of values without 'in'
+                    for v in value:
+                        print(v)
+                        filter_kwargs = {field + lookup_operator: v}
+                        q_object &= Q(**filter_kwargs)
+                else:
+                    filter_kwargs = {field + lookup_operator: value}
+                    q_object &= Q(**filter_kwargs)
+        print(q_object)
+        return q_object, order_by_fields, annotations
+
+    except (ValueError, TypeError, AttributeError) as e:  # Catch potential errors
+        print(f"Error processing payload: {e}")  # Log the error
+        return None, None, None  # Return None on error
+    """Converts a JSON payload to a Django Q object for filtering.
+
+    Handles nested conditions (OR, AND, EXCLUDE), dot notation for lookups,
+    lists of values, and various aggregation functions.  Includes robust
+    error handling and input validation.
+
+    Args:
+        payload (dict): The JSON payload containing filter conditions.
+        model (Model): The Django model to query.
+
+    Returns:
+        tuple: (Q object, order_by fields, annotations) or (None, None, None) on error.
+    """
+
+    q_object = Q()
+    order_by_fields = None
+    annotations = None
+
+    if not payload or not isinstance(payload, dict):
+        return None, None, None  # Handle invalid payload
+
+    try:
+        for key, value in payload.items():
+            if key in ("or_conditions", "and_conditions", "exclude"):
+                if not isinstance(value, list) or not all(isinstance(x, dict) for x in value):
+                    raise ValueError(f"'{key}' must be a list of dictionaries.")
+
+                sub_q = Q()
+                for condition in value:
+                    condition_q = Q()
+                    for k, v in condition.items():
+                        field, lookup = k.split(".") if "." in k else (k, "exact")
+                        lookup_operator = "__" + lookup if lookup != "exact" and lookup != "isnull" else ""
+                        filter_kwargs = {field + lookup_operator: v}
+                        condition_q &= Q(**filter_kwargs)  # Combine within the condition
+
+                    if key == "or_conditions":
+                        sub_q |= condition_q
+                    elif key == "and_conditions":
+                        sub_q &= condition_q
+                    elif key == "exclude":
+                        sub_q &= ~condition_q
+
+                if key == "or_conditions":
+                    q_object |= sub_q
+                elif key == "and_conditions":
+                    q_object &= sub_q
+                elif key == "exclude":
+                    q_object &= ~sub_q
+
+            elif key == "order_by":
+                if not isinstance(value, list):
+                    raise ValueError("'order_by' must be a list.")
+
+                order_by_fields = []
+                for field_str in value:
+                    prefix = "-" if field_str.startswith("-") else ""
+                    field_name = field_str[1:] if field_str.startswith("-") else field_str
+
+                    try:
+                        model._meta.get_field(field_name)  # More robust field check
+                    except models.FieldDoesNotExist:
+                        raise ValueError(f"Invalid order_by field '{field_str}' for model '{model.__name__}'.")
+
+                    order_by_fields.append(f"{prefix}{field_name}")
+
+
+            elif key == "annotations":
+                if not isinstance(value, dict):
+                    raise ValueError("'annotations' must be a dictionary.")
+
+                annotations = {}
+                for annotation_name, aggregation in value.items():
+                    if not isinstance(aggregation, (Sum, Count, Avg, Max, Min, F)): # check if aggregation is valid
+                        raise ValueError(f"Invalid aggregation function '{aggregation}' for annotation '{annotation_name}'.")
+                    annotations[annotation_name] = aggregation
+
+            elif "__" in key and key.startswith("json_field__"):
+                json_field_name, lookup = key.split("__")[0], "__".join(key.split("__")[1:])
+                try:
+                    json_field = model._meta.get_field(json_field_name) # More robust field check
+                except models.FieldDoesNotExist:
+                    raise ValueError(f"Invalid JSONField '{json_field_name}' for model '{model.__name__}'.")
+                # ... (JSONField handling - same logic as before)
+
+            else:  # Regular field lookups
+                field, lookup = key.split(".") if "." in key else (key, "exact")
+                lookup_operator = "__" + lookup if lookup != "exact" and lookup != "isnull" else ""
+
+                try:
+                    model._meta.get_field(field)  # More robust field check
+                except models.FieldDoesNotExist:
+                    raise ValueError(f"Invalid field '{field}' for model '{model.__name__}'.")
+
+                if isinstance(value, list) and lookup != "in":  # List of values without 'in'
+                    for v in value:
+                        filter_kwargs = {field + lookup_operator: v}
+                        q_object &= Q(**filter_kwargs)
+                else:
+                    filter_kwargs = {field + lookup_operator: value}
+                    q_object &= Q(**filter_kwargs)
+
+        return q_object, order_by_fields, annotations
+
+    except (ValueError, TypeError, AttributeError) as e:  # Catch potential errors
+        print(f"Error processing payload: {e}")  # Log the error
+        return None, None, None  # Return None on error
                         
-def json_to_django_q(payload,model):
+""" def json_to_django_q(payload,model):
     from django.db.models import Q
     q_object = Q()
    
@@ -394,3 +812,4 @@ def json_to_django_q(payload,model):
                   q_object &= Q(**{field: value})
 
     return q_object
+ """

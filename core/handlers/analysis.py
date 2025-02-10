@@ -6,7 +6,54 @@ from django.db.models import Count, Sum, Case, When, Value, IntegerField, Avg, F
 from django.db.models.functions import TruncHour, TruncDay
 from collections import defaultdict
 from django.http import JsonResponse  # For sending JSON response (if used as a view)
+class VividmindTaskAnalysis:
 
+    def analyze_failed_requests(self, time_delta=timedelta(days=7)):
+        range_end = timezone.now()
+        range_start = self.get_last_analysis_range('analyze_failed_requests') or range_end - time_delta
+        request_logs = RequestLog.objects.filter(datetime__range=(range_start, range_end), status_code__range=(400, 599))
+
+        failed_request_counts = request_logs.values('end_point', 'r_type').annotate(count=Count('id'))
+        data = list(failed_request_counts)
+
+        self.save_analysis_result('analyze_failed_requests', data, range_start, range_end)
+        return data
+class CentralRequestingAnalysis:
+    def analyze_central_logs(self):
+        pass
+class StorageHouseRequestingAnalysis:
+    def analyze_storagehouse_requestlogs(self):
+        pass
+class InstagramAutomationAnalysis:
+    def analyze_automation_logs(self):
+        pass
+class InstagramScrapingAnalysis:
+    def analyze_scraping_logs(self):
+        pass
+class DeviceAnalysis:
+    def analyze_device_logs(self):
+        pass
+class ServerAnalysis:
+    def analyze_server_logs(self):
+        pass
+class OpenAiAnalysis:
+    def analyze_openai_analysis_logs(self):
+        pass
+class AudienceAnalysis:
+    def analyze_audience_logs(self):
+        pass
+class ScrapeTaskAnalysis:
+    def analyze_scrapetask_logs(self):
+        pass
+class DownloadAnalysis:
+    def analyze_downloads_logs(self):
+        pass
+    def analyze_successful_downloads_with_respect_to_service(self):
+        pass
+        from core.models import Log
+        download_logs=Log.objects.all().filter(type='downloaded_file')
+    def analyze_successful_downloads_with_respect_to_endpoint(self):
+        pass
 def analyze_request_logs_nested_with_counts():
     """
     Analyzes request logs and creates a nested dictionary structure with success/failure counts.
@@ -35,6 +82,7 @@ def analyze_request_logs_nested_with_counts():
             nested_data[service][end_point][data_point][r_type]["fail_count"] += 1
 
     # Aggregate counts at higher levels
+    print(nested_data.items())
     for service, end_points in nested_data.items():
         service_success = 0
         service_fail = 0

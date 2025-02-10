@@ -27,9 +27,9 @@ def create_request_log(payload):
         try:
             task = Task.objects.get(uuid=task_id)
         except Task.DoesNotExist:
-            raise ValueError(f"Task with ID {task_id} not found.")
-    else:
-        task = Task.objects.create() 
+            
+    
+            task = Task.objects.create(uuid=task_id) 
 
     try:
         # Attempt to load the data as JSON
