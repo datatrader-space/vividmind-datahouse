@@ -27,7 +27,7 @@ import ast # if you use it
 
 # ... rest of your code (the sync view and other functions) ...
 # Create your views here.
-
+import json
 @csrf_exempt
 def consume(request):
     if request.method == 'POST':
@@ -39,6 +39,11 @@ def consume(request):
         for row in data:
             print(row)
             print(type(row))
+            if not type(row)==dict:
+                try:
+                    row=json.loads(row)##add logging here
+                except Exception as e:
+                    continue
             task=Task.objects.all().filter(uuid=row['task_uuid'])
             if task:
                 task=task[0]
