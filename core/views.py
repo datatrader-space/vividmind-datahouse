@@ -264,6 +264,9 @@ def provide(request):
 
             #print(queryset)
             results = []
+            if data.get('size'):
+                size=data.get('size')
+                queryset=queryset[0:size]
             for obj in queryset:
                 data_dict = {}
                 if required_fields:
@@ -307,8 +310,12 @@ def provide(request):
                                 #return JsonResponse({"error": f"Field '{field}' not found on model '{model._meta.model_name}'"}, status=400) # added model name to error message
                 else:  # Default behavior (include all fields)
                   
-                    for field in [f.name for f in model._meta.fields]:
-                        data_dict[field] = getattr(obj, field)
+                    for field in [f.name for f in obj._meta.fields]:
+                        print(type(getattr(obj,field)))
+                        if type(getattr(obj, field))==dict:
+                            data_dict.update(**getattr(obj, field))
+                        else:
+                            data_dict[field] = getattr(obj, field)
                 
                 results.append(data_dict)
 
@@ -398,8 +405,13 @@ def serialize_related_fields(queryset, required_fields=None):
                         required_fields.remove(field)
 
         elif not required_fields: # if required fields is None
+            print('not requ')
             for field in [f.name for f in obj._meta.fields]:
-                data_dict[field] = getattr(obj, field)
+                print(type(getattr(obj,field)))
+                if type(getattr(obj, field))==dict:
+                    data_dict.update(**getattr(obj, field))
+                else:
+                    data_dict[field] = getattr(obj, field)
 
             for related_field in obj._meta.related_objects:  # Handle related fields
                 related_name = related_field.name
