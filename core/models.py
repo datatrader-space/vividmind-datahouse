@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.db import models
-
+import uuid as ud
 SERVICES = (
     ('instagram', 'Instagram'),
     ('attendance','attendance'),
@@ -111,19 +111,19 @@ from django.utils.crypto import get_random_string
 class ProfileText(models.Model):
     
     
-    uuid = models.CharField(max_length=36, unique=True, default=get_random_string, editable=False)
+    uuid = models.UUIDField(default=ud.uuid4,editable=False)
     content = models.TextField()
     Profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name='profile_text')
     tasks=models.ManyToManyField(Task)
 
 class PostText(models.Model):
-    uuid = models.CharField(max_length=36, unique=True, default=get_random_string, editable=False)
+    uuid = models.UUIDField(default=ud.uuid4,editable=False)
     content = models.TextField()
     post = models.OneToOneField(Post, on_delete=models.CASCADE, related_name='text') 
     tasks=models.ManyToManyField(Task)
 
 class CommentText(models.Model):
-    uuid = models.CharField(max_length=36, unique=True, default=get_random_string, editable=False)
+    uuid = models.UUIDField(default=ud.uuid4,editable=False)
     content = models.TextField()
     comment = models.OneToOneField(Comment, on_delete=models.CASCADE, related_name='text') 
     tasks=models.ManyToManyField(Task)
