@@ -36,7 +36,7 @@ def consume(request):
         data = json.loads(request.body) 
        
         
-        for row in data:
+        for row in data['data']:
             print(row)
             print(type(row))
             if not type(row)==dict:
