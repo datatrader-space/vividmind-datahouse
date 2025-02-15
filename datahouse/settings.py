@@ -136,7 +136,7 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 DATA_UPLOAD_MAX_MEMORY_SIZE=None
 
-STORAGE_HOUSE_URL='http://localhost:83/'
+STORAGE_HOUSE_URL='http://208.109.246.14:8080/'
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CORS_ALLOWED_ORIGINS = [
     "https://0cda-2400-adc5-491-1500-d2f-8688-8e28-cd23.ngrok-free.app",
