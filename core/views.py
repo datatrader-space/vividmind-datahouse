@@ -276,8 +276,18 @@ def provide(request):
                 for profile in queryset:
                     profile_info=model_to_dict(profile)
                     profile_posts=profile.posts.all()
-                    profile_posts_posttext=profile_posts.posttext.all().text
-                    out={'text':profile_posts_posttext,'info':profile_info}
+                    profile_posts_posttext=profile_posts.posttext.all()
+                    for i, post in profile_posts:
+                        post_medias=[]
+                        post_text=post.posttext.all()
+                        if post_text:
+                            post_text=post_text[0].content
+                        post_media=post.postmedias.all()
+                        for media in post_media:
+                            post_medias.append(media.file_path)
+                        
+
+                    out={'text':post_text,'info':post_medias}
                     print(out)
             for obj in queryset:
                 data_dict = {}
