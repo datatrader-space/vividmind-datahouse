@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,8 +25,12 @@ SECRET_KEY = 'django-insecure-czxoo5)^ld#*@-208eng2(i_ydvn)%bnv#ss9_)&5ywq54_q83
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = [
+    "208.109.241.136",
+    "localhost",
+    "127.0.0.1",
+    "api.ipify.org"
+]
 
 # Application definition
 
@@ -74,13 +78,13 @@ WSGI_APPLICATION = 'datahouse.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-DATABASES = {
+""" DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-} 
-""" from decouple import config
+} """
+from decouple import config
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -91,7 +95,7 @@ DATABASES = {
         'PORT': '5432',
         #'ATOMIC_REQUESTS': True,
     }
-} """
+}
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
@@ -130,17 +134,22 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static')
+]
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 DATA_UPLOAD_MAX_MEMORY_SIZE=None
 
-STORAGE_HOUSE_URL='http://208.109.246.14:8080/'
+
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-CORS_ALLOWED_ORIGINS = [
-    "https://0cda-2400-adc5-491-1500-d2f-8688-8e28-cd23.ngrok-free.app",
-    "http://localhost",
-    
+STORAGE_HOUSE_URL='http://208.109.246.14:8080/'
+CSRF_TRUSTED_ORIGINS = [
+    'http://208.109.241.136:8080',
+    'http://localhost'
 ]
-ALLOWED_HOSTS=['*']

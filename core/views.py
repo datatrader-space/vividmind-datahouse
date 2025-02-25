@@ -273,22 +273,43 @@ def provide(request):
                 size=data.get('size')
                 queryset=queryset[0:size]
             if data.get('provide_for_profile_analysis'):
-                for profile in queryset:
+                results=[]
+                queryset=queryset.filter(posts__gte=1)
+                from core.models import Post
+                from django.db.models import Q
+                profiles_list=Post.objects.all().filter(profile__info__is_private=False).filter(Q(profile__info__country__isnull=True)|Q( profile__info__gender__isnull=False)|Q( profile__info__profile_analysis__isnull=False)).annotate(count=Count('profile__username')).values_list('profile__username',flat=True)
+                for username in set(profiles_list):
+                    posts=[]
+                    profile=Profile.objects.all().filter(username=username)[0]
                     profile_info=model_to_dict(profile)
+                    info=profile_info.pop('info',{})
+                    profile_info.update(**info)
+                    profile_info.pop('tasks')
+                    from django.conf import settings
+                    pict=False if type (profile_info['profile_picture'])==dict else settings.STORAGE_HOUSE_URL+profile_info['profile_picture']
+                    profile_info['profile_picture']=pict
                     profile_posts=profile.posts.all()
-                    profile_posts_posttext=profile_posts.posttext.all()
-                    for i, post in profile_posts:
+                    
+                    for i, post in enumerate(profile_posts):
+                        post_text=''
                         post_medias=[]
-                        post_text=post.posttext.all()
-                        if post_text:
-                            post_text=post_text[0].content
-                        post_media=post.postmedias.all()
+                        try:
+                            post_text=post.text
+                            print(post_text)
+                            if post_text:
+                                post_text=post_text.content
+                        except Exception as e:
+                            pass
+
+                        post_media=post.medias.all()
                         for media in post_media:
-                            post_medias.append(media.file_path)
+                            post_medias.append(settings.STORAGE_HOUSE_URL+media.file_path)
                         
 
-                    out={'text':post_text,'info':post_medias}
-                    print(out)
+                        out={'text':post_text,'medias':post_medias}
+                        posts.append(out)
+                    results.append({'profile_info':profile_info,'posts':posts})
+                return JsonResponse(data={'data':results},status=200)
             for obj in queryset:
                 data_dict = {}
                 if required_fields:
