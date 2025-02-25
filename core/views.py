@@ -272,6 +272,13 @@ def provide(request):
             if data.get('size'):
                 size=data.get('size')
                 queryset=queryset[0:size]
+            if data.get('provide_for_profile_analysis'):
+                for profile in queryset:
+                    profile_info=model_to_dict(profile)
+                    profile_posts=profile.posts.all()
+                    profile_posts_posttext=profile_posts.posttext.all().text
+                    out={'text':profile_posts_posttext,'info':profile_info}
+                    print(out)
             for obj in queryset:
                 data_dict = {}
                 if required_fields:
