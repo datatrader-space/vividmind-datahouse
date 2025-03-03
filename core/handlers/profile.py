@@ -6,9 +6,8 @@ def handle_instagram_profile(row,task):
         p=p[0]
     else:
         p=Profile(username=row.get('username'),service=row['service'])
-    update_fields=[   "gender",
-    "country",
-    "city",
+    update_fields=[ "gender",
+    "country","city",
     "interests",
     "profile_analysis",
     "keywords",
