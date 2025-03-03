@@ -21,7 +21,7 @@ class LogAdmin(admin.ModelAdmin):
 from django.conf import settings
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ('username',  'profile_picture_url')
-    search_fields = ('username', 'name') 
+    search_fields = ('username') 
     def profile_picture_url(self, obj):
         if obj.profile_picture:
             # Construct the full URL by combining MEDIA_URL and the file path
