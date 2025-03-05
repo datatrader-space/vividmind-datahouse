@@ -266,9 +266,7 @@ def provide(request):
 
             #print(queryset)
             results = []
-            if data.get('size'):
-                size=data.get('size')
-                queryset=queryset[0:size]
+            
             if data.get('count'):
                 return JsonResponse(data={'data':[],'count':len(queryset)},status=200)
             if data.get('provide_for_profile_analysis'):
@@ -276,7 +274,10 @@ def provide(request):
                
                 from core.models import Post
                 from django.db.models import Q
-                profiles_list=Post.objects.all().filter(profile__info__is_private=False).filter(Q(profile__info__country__isnull=True)|Q( profile__info__gender__isnull=False)|Q( profile__info__profile_analysis__isnull=False)).annotate(count=Count('profile__username')).values_list('profile__username',flat=True)
+                profiles_list=queryset.filter(info__is_private=False).filter(Q(nfo__country__isnull=True)|Q( info__gender__isnull=False)|Q( info__profile_analysis__isnull=False)).annotate(count=Count('profile__username')).values_list('profile__username',flat=True)
+                if data.get('size'):
+                    size=data.get('size')
+                    profiles_list=profiles_list[0:size]
                 for username in set(profiles_list):
                     posts=[]
                     profile=Profile.objects.all().filter(username=username)[0]
@@ -309,6 +310,9 @@ def provide(request):
                         posts.append(out)
                     results.append({'profile_info':profile_info,'posts':posts})
                 return JsonResponse(data={'data':results},status=200)
+            if data.get('size'):
+                size=data.get('size')
+                queryset=queryset[0:size]
             for obj in queryset:
                 data_dict = {}
                 if required_fields:
