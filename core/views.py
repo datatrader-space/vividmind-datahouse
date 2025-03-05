@@ -274,7 +274,7 @@ def provide(request):
                
                 from core.models import Post
                 from django.db.models import Q
-                profiles_list=queryset.filter(info__is_private=False).filter(Q(nfo__country__isnull=True)|Q( info__gender__isnull=False)|Q( info__profile_analysis__isnull=False)).annotate(count=Count('profile__username')).values_list('profile__username',flat=True)
+                profiles_list=queryset.filter(info__is_private=False).filter(Q(info__country__isnull=True)|Q( info__gender__isnull=False)|Q( info__profile_analysis__isnull=False)).annotate(count=Count('username')).values_list('username',flat=True)
                 if data.get('size'):
                     size=data.get('size')
                     profiles_list=profiles_list[0:size]
