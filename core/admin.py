@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Profile,Post,PostMedia,PostText,Follow,Task,Location,Log,RequestLog,BulkCampaign,Audience,Output,Server,ChildBot
-admin.site.register(Post)
+
 admin.site.register(PostText)
 admin.site.register(PostMedia)
 admin.site.register(Follow)
