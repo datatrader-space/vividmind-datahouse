@@ -1,6 +1,13 @@
 def handle_instagram_post(row,task):
     from core.models import Profile,Post,PostMedia,PostText
     from django.conf import settings
+    if not row.get('shortcode'):
+        if not row.get('code'):
+            return False
+        else:
+            pass
+    else:
+        row['code']=row['shortcode']
     p=Post.objects.all().filter(code=row.get('code'),service=row['service'])
     if len(p)>0:
         p=p[0]
@@ -54,6 +61,8 @@ def handle_instagram_post(row,task):
            l=False
 
     for key in list(row.keys()):
+        if key =='shortcode':
+            row['code']=row['shortcode']
         if key in update_fields:
             
                 
@@ -69,6 +78,7 @@ def handle_instagram_post(row,task):
                         
                         pm=PostMedia(post=p,file_path=media['storage_house_file_path'],file_type=media['media_type'])
                         pm.save()
+        
             elif key=='caption':
                 if row.get('caption'):
                     

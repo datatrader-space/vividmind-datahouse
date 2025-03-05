@@ -32,13 +32,12 @@ import json
 def consume(request):
     if request.method == 'POST':
         from django.forms import model_to_dict
-        print(request.body)
+      
         data = json.loads(request.body) 
        
         
         for row in data['data']:
-            print(row)
-            print(type(row))
+          
             if not type(row)==dict:
                 try:
                     row=json.loads(row)##add logging here
@@ -53,14 +52,12 @@ def consume(request):
             if row.get('service'):
                 service=row.get('service')
                 object_type=row.get('object_type')
-                print(object_type)
-                
-                print(object_type)
+
                 if service == 'instagram':
                     if object_type=='profile' or object_type=='user_followers' or object_type=='user':
                         
                         from core.handlers.profile import handle_instagram_profile
-                        print(row)
+                        
                         handle_instagram_profile(row,task)
                     elif object_type=='post':
                         from core.handlers.post import handle_instagram_post
@@ -246,8 +243,8 @@ def provide(request):
 
         
 
-        print(data)
         filters=data.get('filters')
+        print(data)
         try:
             filters = data.get('filters')
             object_type = data.get('object_type')
@@ -272,9 +269,11 @@ def provide(request):
             if data.get('size'):
                 size=data.get('size')
                 queryset=queryset[0:size]
+            if data.get('count'):
+                return JsonResponse(data={'data':[],'count':len(queryset)},status=200)
             if data.get('provide_for_profile_analysis'):
                 results=[]
-                queryset=queryset.filter(posts__gte=1)
+               
                 from core.models import Post
                 from django.db.models import Q
                 profiles_list=Post.objects.all().filter(profile__info__is_private=False).filter(Q(profile__info__country__isnull=True)|Q( profile__info__gender__isnull=False)|Q( profile__info__profile_analysis__isnull=False)).annotate(count=Count('profile__username')).values_list('profile__username',flat=True)
@@ -354,7 +353,7 @@ def provide(request):
                 else:  # Default behavior (include all fields)
                   
                     for field in [f.name for f in obj._meta.fields]:
-                        print(type(getattr(obj,field)))
+                       
                         if type(getattr(obj, field))==dict:
                             data_dict.update(**getattr(obj, field))
                         else:
@@ -450,7 +449,7 @@ def serialize_related_fields(queryset, required_fields=None):
         elif not required_fields: # if required fields is None
             print('not requ')
             for field in [f.name for f in obj._meta.fields]:
-                print(type(getattr(obj,field)))
+               
                 if type(getattr(obj, field))==dict:
                     data_dict.update(**getattr(obj, field))
                 else:
@@ -646,10 +645,11 @@ def json_to_django_q(payload, model):
 
                 annotations = {}
                 for annotation_name, aggregation in value.items():
+                    aggregation=eval(aggregation)
                     if not isinstance(aggregation, (Sum, Count, Avg, Max, Min, F)): # check if aggregation is valid
                         raise ValueError(f"Invalid aggregation function '{aggregation}' for annotation '{annotation_name}'.")
                     annotations[annotation_name] = aggregation
-
+                q_object &= Q(**{f"{annotation_name}__isnull": False})
 
                
 

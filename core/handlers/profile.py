@@ -6,6 +6,7 @@ def handle_instagram_profile(row,task):
         p=p[0]
     else:
         p=Profile(username=row.get('username'),service=row['service'])
+    print(row)
     update_fields=[ "gender",
     "country","city",
     "interests",
@@ -16,14 +17,19 @@ def handle_instagram_profile(row,task):
     "external_accounts",
     "type",
     "age",
+    "bio",
+    "category_name"
     "possible_buying_interests",
     "interests_and_lifestyle_patterns",
     "possible_buying_intent",
     "financial_and_economic_status",
-    "religion",'is_private','account_type','show_account_transparency_details','id','rest_id','fbid_v2','is_unpublished','full_name','follwowers_count','following_count','post_count','profile_pic','profile_picture']
+    "religion",'is_private','account_type','show_account_transparency_details','id','rest_id','fbid_v2','is_unpublished','full_name','followers_count','followings_count','post_count','profile_pic','profile_picture']
     for key in list(row.keys()):
+        if key=='name' and len(row[key])>1:
+            
+            p.info['full_name']=row[key]
         if key in update_fields:
-            print(type(row[key]))
+           
             if key=='profile_picture' or key=='profile_pic':
                 if row[key].get('storage_house_file_path'):
                     p.profile_picture=row[key]['storage_house_file_path']
@@ -39,10 +45,11 @@ def handle_instagram_profile(row,task):
 
        
 
-    print(p.info)
+
     p.save()
     p.tasks.add(task)
     p.save()
+    print(p.tasks.all())
     if row.get('follower_of'):
         follower_of=Profile.objects.all().filter(username=row['follower_of'])
 
