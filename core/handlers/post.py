@@ -13,11 +13,35 @@ def handle_instagram_post(row,task):
         p=p[0]
     else:
         p=Post(code=row.get('code'),service=row['service'])
-        
-    update_fields=['id','code','fbid_v2','downloaded_medias','pk','like_and_view_counts_disabled','is_post_live_clips_media','commerciality_status',
-                   'ntegrity_review_decision','filter_type','caption','coauthor_producers','music_metadata','b_aggregated_like_count','fb_aggregated_comment_count',
-                   'has_high_risk_gen_ai_inform_treatment','comment_count','like_count','media_type','location'
-                   ]
+    update_fields=[
+                "id",
+                "shortcode",
+                "has_audio",
+                "video_view_count",
+                "taken_at_timestamp",
+                "location",
+                "nft_asset_info",
+                "like_and_view_counts_disabled",
+                "product_type",
+                "clips_music_attribution_info",
+                "downloaded_medias",
+                "service",
+                "object_type",
+                "link",
+                "rest_id",
+                "caption",
+                "filter",
+                "attribution",
+                "user_has_liked",
+                "user",
+                "type",
+                "likes",
+                "comments",
+                "created_time",
+                "users_in_photo",
+
+            ]
+
     
     for key in ['owner','user']:
         if row.get(key):
@@ -69,9 +93,10 @@ def handle_instagram_post(row,task):
 
             if key=='downloaded_medias':
                 if  p.medias.all():
+                    p.medias.all().delete()
                     print('post has already medias')
                     print(p.medias.all())
-                    continue
+                    
                 for media in row[key]:
                     print(media)
                     if media.get('storage_house_file_path'):
