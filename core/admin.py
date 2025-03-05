@@ -29,5 +29,9 @@ class ProfileAdmin(admin.ModelAdmin):
             return full_url
         return ''
     profile_picture_url.allow_tags = True 
+class PostAdmin(admin.ModelAdmin):
+    list_display = ('profile_username',  'code','caption')
+    search_fields = ('code','caption') 
+    
 
-admin.site.register(Profile,ProfileAdmin)
+admin.site.register(Post,PostAdmin)
