@@ -274,7 +274,7 @@ def provide(request):
                
                 from core.models import Post
                 from django.db.models import Q
-                profiles_list=queryset.filter(info__is_private=False).filter(info__profile_analysis=False).annotate(count=Count('username')).values_list('username',flat=True)
+                profiles_list=queryset.filter(info__is_private=False).filter(info__profile_analysis__isnull=False).annotate(count=Count('username')).values_list('username',flat=True)
                 if data.get('size'):
                     size=data.get('size')
                     profiles_list=profiles_list[0:size]
@@ -298,6 +298,7 @@ def provide(request):
                             print(post_text)
                             if post_text:
                                 post_text=post_text.content
+                            
                         except Exception as e:
                             pass
 

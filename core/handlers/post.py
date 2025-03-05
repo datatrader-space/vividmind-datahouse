@@ -20,7 +20,7 @@ def handle_instagram_post(row,task):
                    ]
     owner=row['owner']
     for key in ['owner','user']:
-        if row[key]:
+        if row.get(key):
             from core.handlers.profile import handle_instagram_profile
             row[key].update({'service':row['service']})
             owner=handle_instagram_profile(row[key],task)
