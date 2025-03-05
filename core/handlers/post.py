@@ -18,7 +18,7 @@ def handle_instagram_post(row,task):
                    'ntegrity_review_decision','filter_type','caption','coauthor_producers','music_metadata','b_aggregated_like_count','fb_aggregated_comment_count',
                    'has_high_risk_gen_ai_inform_treatment','comment_count','like_count','media_type','location'
                    ]
-    owner=row['owner']
+    
     for key in ['owner','user']:
         if row.get(key):
             from core.handlers.profile import handle_instagram_profile
