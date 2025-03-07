@@ -304,6 +304,8 @@ def provide(request):
 
                         post_media=post.medias.all()
                         for media in post_media:
+                            if media.file_type=='video':
+                                continue
                             post_medias.append(settings.STORAGE_HOUSE_URL+media.file_path)
                         
 
