@@ -304,11 +304,7 @@ def provide(request):
 
                         post_media=post.medias.all()
                         for media in post_media:
-<<<<<<< HEAD
                             if media.file_type=='vidoe':
-=======
-                            if media.file_type=='video':
->>>>>>> bf3581ddc414afefa5030e7ef27ea6f9005a6418
                                 continue
                             post_medias.append(settings.STORAGE_HOUSE_URL+media.file_path)
                         
