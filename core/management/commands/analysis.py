@@ -1,10 +1,8 @@
 import json
 from datetime import timedelta
 from django.core.management.base import BaseCommand
-from core.handlers.analysis import get_chart_data_json
-import matplotlib.pyplot as plt  # Import Matplotlib
-from io import BytesIO
-import base64
+
+
 # ... (your other imports and the analysis/chart functions)
 
 class Command(BaseCommand):
