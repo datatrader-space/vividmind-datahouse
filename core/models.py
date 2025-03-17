@@ -48,6 +48,47 @@ class Profile(models.Model):
     info=models.JSONField(default={},blank=False,null=True)
     profile_picture = models.CharField(blank=True,null=True,max_length=100)
     service=models.CharField(blank=False,null=False,choices=SERVICES,max_length=50)
+    name = models.CharField(max_length=255,null=True)
+    followers_count = models.PositiveIntegerField(default=0)
+    followings_count = models.PositiveIntegerField(default=0)
+    post_count = models.PositiveIntegerField(default=0)
+    is_private = models.BooleanField(default=False)
+    bio = models.TextField(blank=True, null=True)
+    GENDER_CHOICES = [
+        ('M', 'Male'),
+        ('F', 'Female'),
+        ('O', 'Other'),
+        ('U', 'Unknown'),
+    ]
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True, null=True)
+    country = models.CharField(max_length=100, blank=True, null=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
+    interests = models.TextField(blank=True, null=True)
+    profile_analysis = models.TextField(blank=True, null=True)
+    keywords = models.TextField(blank=True, null=True)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    external_accounts = models.TextField(blank=True, null=True)  # JSON or comma-separated string can be used here.
+    age = models.PositiveIntegerField(blank=True, null=True)
+    category_name = models.CharField(max_length=255, blank=True, null=True)
+    possible_buying_interests = models.TextField(blank=True, null=True)
+    interest_and_lifestyle_patterns = models.TextField(blank=True, null=True)
+    possible_buying_intent = models.TextField(blank=True, null=True)
+    financial_and_economic_status = models.TextField(blank=True, null=True)
+    religion = models.CharField(max_length=100, blank=True, null=True)
+    ACCOUNT_TYPE_CHOICES = [
+        ('personal', 'Personal'),
+        ('business', 'Business'),
+        ('creator', 'Creator'),
+        ('other', 'Other'),
+    ]
+    account_type = models.CharField(max_length=20, choices=ACCOUNT_TYPE_CHOICES, blank=True, null=True)
+    show_account_transparency_details = models.TextField(blank=True, null=True)
+    id = models.AutoField(primary_key=True) # explicitly adding id as primary key.
+    rest_id = models.CharField(max_length=255, blank=True, null=True)
+    fbid_v2 = models.CharField(max_length=255, blank=True, null=True)
+    
+
     tasks=models.ManyToManyField(Task)
 
     def __str__(self):

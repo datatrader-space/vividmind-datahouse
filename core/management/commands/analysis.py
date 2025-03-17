@@ -11,47 +11,48 @@ class Command(BaseCommand):
     help = 'Generates chart data from request logs and saves it to a PNG image file.'
 
     def handle(self, *args, **options):
-        chart_json = get_chart_data_json()
-        chart_data = json.loads(chart_json)
+        from core.models import Profile,Follow
+        from django.conf import settings
+        profiles=Profile.objects.all()
+        for p in profiles:
+            row=p.info
+            update_fields=[ "gender",
+            "country","city",
+            "interests",
+            "profile_analysis",
+            "keywords",
+            "phone_number",
+            "email",
+            "external_accounts",
+            "type",
+            "age",
+            "bio",
+            "category_name"
+            "possible_buying_interests",
+            "interests_and_lifestyle_patterns",
+            "possible_buying_intent",
+            "financial_and_economic_status",
+            "religion",'is_private','account_type','show_account_transparency_details','id','rest_id','fbid_v2','is_unpublished','full_name','followers_count','followings_count','post_count','profile_pic','profile_picture']
+            for key in list(row.keys()):
+                if key=='name' and len(row[key])>1:
+                    
+                    p.name=row[key]
+                if key in update_fields:
+                
+                    if key=='profile_picture' or key=='profile_pic':
+                        if row[key].get('storage_house_file_path'):
+                            p.profile_picture=row[key]['storage_house_file_path']
 
-        # Create the Matplotlib chart
-        labels = chart_data['labels']
-        success_data = chart_data['datasets'][0]['data']  # Assuming the first dataset is success
-        failure_data = chart_data['datasets'][1]['data']  # And the second is failure
+                    elif type(row[key])==bool:
+                        p.__setattr__(key,row[key])
+                        
+                    else:
+                        if len(str(row[key]))>1:
+                            p.__setattr__(key,row[key])
+                            
+                    
 
-        x = range(len(labels))  # the label locations
-
-        width = 0.35  # the width of the bars
-
-        fig, ax = plt.subplots()
-        rects1 = ax.bar(x, success_data, width, label='Success')
-        rects2 = ax.bar([i + width for i in x], failure_data, width, label='Failure')
-
-        # Add some text for labels, title and custom x-axis tick labels, etc.
-        ax.set_ylabel('Counts')
-        ax.set_title('Request Log Analysis')
-        ax.set_xticks([i + width / 2 for i in x])
-        ax.set_xticklabels(labels)
-        ax.legend()
+            
 
 
-        def autolabel(rects):
-            """Attach a text label above each bar in *rects*, displaying its height."""
-            for rect in rects:
-                height = rect.get_height()
-                ax.annotate('{}'.format(height),
-                            xy=(rect.get_x() + rect.get_width() / 2, height),
-                            xytext=(0, 3),  # 3 points vertical offset
-                            textcoords="offset points",
-                            ha='center', va='bottom')
-
-
-        autolabel(rects1)
-        autolabel(rects2)
-
-        fig.tight_layout()
-
-        # Save the chart to a PNG image file
-        plt.savefig('chart.png')
-
-        self.stdout.write(self.style.SUCCESS('Chart image (chart.png) generated.'))
+            p.save()

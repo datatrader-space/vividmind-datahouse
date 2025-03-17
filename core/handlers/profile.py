@@ -27,20 +27,20 @@ def handle_instagram_profile(row,task):
     for key in list(row.keys()):
         if key=='name' and len(row[key])>1:
             
-            p.info['full_name']=row[key]
+            p.name=row[key]
         if key in update_fields:
            
             if key=='profile_picture' or key=='profile_pic':
                 if row[key].get('storage_house_file_path'):
                     p.profile_picture=row[key]['storage_house_file_path']
-                else:
-                    p.info[key]=row[key]
+
             elif type(row[key])==bool:
-                p.info[key]=row[key]
+                p.__setattr__(key,row[key])
+                
             else:
                 if len(str(row[key]))>1:
-
-                    p.info[key]=row[key]
+                    p.__setattr__(key,row[key])
+                    
              
 
        
