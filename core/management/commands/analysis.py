@@ -34,6 +34,9 @@ class Command(BaseCommand):
             for key in list(row.keys()):
                 print(key)
                 print(row[key])
+                if key =='id':
+                    p.rest_id=row[key]
+                    continue
                 if key=='name' and len(row[key])>1:
                     
                     p.name=row[key]
