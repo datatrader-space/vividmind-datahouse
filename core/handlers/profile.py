@@ -23,11 +23,15 @@ def handle_instagram_profile(row,task):
     "interests_and_lifestyle_patterns",
     "possible_buying_intent",
     "financial_and_economic_status",
-    "religion",'is_private','account_type','show_account_transparency_details','id','rest_id','fbid_v2','is_unpublished','full_name','followers_count','followings_count','post_count','profile_pic','profile_picture']
+    "religion",'is_private','account_type','show_account_transparency_details','rest_id','fbid_v2','is_unpublished','full_name','followers_count','followings_count','post_count','profile_pic','profile_picture']
     for key in list(row.keys()):
+        if key =='id':
+            p.rest_id=row[key]
+            continue
         if key=='name' and len(row[key])>1:
             
             p.name=row[key]
+            continue
         if key in update_fields:
            
             if key=='profile_picture' or key=='profile_pic':
