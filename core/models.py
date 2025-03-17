@@ -84,7 +84,7 @@ class Profile(models.Model):
     ]
     account_type = models.CharField(max_length=20, choices=ACCOUNT_TYPE_CHOICES, blank=True, null=True)
     show_account_transparency_details = models.TextField(blank=True, null=True)
-    id = models.AutoField(primary_key=True) # explicitly adding id as primary key.
+
     rest_id = models.CharField(max_length=255, blank=True, null=True)
     fbid_v2 = models.CharField(max_length=255, blank=True, null=True)
     
