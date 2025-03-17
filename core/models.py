@@ -49,9 +49,9 @@ class Profile(models.Model):
     profile_picture = models.CharField(blank=True,null=True,max_length=100)
     service=models.CharField(blank=False,null=False,choices=SERVICES,max_length=50)
     name = models.CharField(max_length=255,null=True)
-    followers_count = models.PositiveIntegerField(default=0)
-    followings_count = models.PositiveIntegerField(default=0)
-    post_count = models.PositiveIntegerField(default=0)
+    followers_count = models.BigAutoField(default=0)
+    followings_count = models.BigAutoField(default=0)
+    post_count = models.BigAutoField(default=0)
     is_private = models.BooleanField(default=False)
     bio = models.TextField(blank=True, null=True)
     GENDER_CHOICES = [
