@@ -31,7 +31,7 @@ class ProfileAdmin(admin.ModelAdmin):
     profile_picture_url.allow_tags = True 
 admin.site.register(Profile,ProfileAdmin)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ( 'code',)
+    list_display = (  'code','text')
     search_fields = ('code',) 
     
 
