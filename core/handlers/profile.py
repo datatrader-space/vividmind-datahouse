@@ -27,29 +27,44 @@ def handle_instagram_profile(row,task):
     for key in list(row.keys()):
         if key =='id':
             p.rest_id=row[key]
+            p.info[key]=row[key]
             continue
-        if key=='name' and len(row[key])>1:
+        if key =='followers_count':
+            p.followers_count=row.get('follower_count') if row.get('follower_count') else row.get('followers_count',None)
+            continue
+        if key =='followings_count':
+            p.followings_count=row.get('following_count') if row.get('following_count') else row.get('following_count',None)
+            continue
+        if key =='post_count':
+            p.post_count=row.get('media_count') if row.get('media_count') else row.get('post_count',None)
+            continue
+        
+        if key=='name' and len(str(row[key]))>1:
             
             p.name=row[key]
+            p.info[key]=row[key]
             continue
         if key in update_fields:
            
-            if key=='profile_picture' or key=='profile_pic':
-                if row[key].get('storage_house_file_path'):
-                    p.profile_picture=row[key]['storage_house_file_path']
+            if key=='profile_picture' :
+                if row.get(key,{}):
+                    if row.get(key,{}).get('storage_house_file_path'):
+                        p.profile_picture=row[key]['storage_house_file_path']
+                        p.info[key]=row[key]['storage_house_file_path']
 
             elif type(row[key])==bool:
                 p.__setattr__(key,row[key])
+                p.info[key]=row[key]
                 
             else:
                 if len(str(row[key]))>1:
                     p.__setattr__(key,row[key])
+                    p.info[key]=row[key]
                     
              
 
-       
-
-
+    from django.forms import model_to_dict
+    print(model_to_dict(p))
     p.save()
     p.tasks.add(task)
     p.save()

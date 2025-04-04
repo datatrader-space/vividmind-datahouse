@@ -57,5 +57,7 @@ class Command(BaseCommand):
 
             from django.forms import model_to_dict
             print(model_to_dict(p))
-
-            p.save()
+            try:
+                p.save()
+            except Exception as e:
+                print(e)

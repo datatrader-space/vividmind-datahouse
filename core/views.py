@@ -264,7 +264,7 @@ def provide(request):
                     return JsonResponse({"error": "Invalid filter payload"}, status=400)
                 queryset = queryset.filter(q)
 
-            #print(queryset)
+            print(len(queryset))
             results = []
             
             if data.get('count'):
@@ -283,10 +283,13 @@ def provide(request):
                     profile=Profile.objects.all().filter(username=username)[0]
                     profile_info=model_to_dict(profile)
                     info=profile_info.pop('info',{})
-                    profile_info.update(**info)
+                    profile_info
                     profile_info.pop('tasks')
                     from django.conf import settings
-                    pict=False if type (profile_info['profile_picture'])==dict else settings.STORAGE_HOUSE_URL+profile_info['profile_picture']
+                    print('pp')
+                    print(profile_info)
+                    pict=False if type (profile_info['profile_picture'])==dict  or not profile_info['profile_picture']else settings.STORAGE_HOUSE_URL+profile_info['profile_picture']
+                    print('passed')
                     profile_info['profile_picture']=pict
                     profile_posts=profile.posts.all()
                     
@@ -306,6 +309,7 @@ def provide(request):
                         for media in post_media:
                             if media.file_type=='vidoe':
                                 continue
+                            print('here')
                             post_medias.append(settings.STORAGE_HOUSE_URL+media.file_path)
                         
 
@@ -316,6 +320,7 @@ def provide(request):
             if data.get('size'):
                 size=data.get('size')
                 queryset=queryset[0:size]
+            print(len(queryset))
             for obj in queryset:
                 data_dict = {}
                 if required_fields:

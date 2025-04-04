@@ -46,7 +46,7 @@ class ChildBot(models.Model):
 class Profile(models.Model):
     username=models.CharField(blank=False,null=False,max_length=100)
     info=models.JSONField(default={},blank=False,null=True)
-    profile_picture = models.CharField(blank=True,null=True,max_length=100)
+    profile_picture = models.CharField(blank=True,null=True,max_length=300)
     service=models.CharField(blank=False,null=False,choices=SERVICES,max_length=50)
     name = models.CharField(max_length=255,null=True)
     followers_count = models.BigIntegerField(null=True,blank=True)
@@ -60,7 +60,7 @@ class Profile(models.Model):
         ('O', 'Other'),
         ('U', 'Unknown'),
     ]
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True, null=True)
+    gender = models.CharField(max_length=100, choices=GENDER_CHOICES, blank=True, null=True)
     country = models.CharField(max_length=100, blank=True, null=True)
     city = models.CharField(max_length=100, blank=True, null=True)
     interests = models.TextField(blank=True, null=True)
@@ -69,7 +69,7 @@ class Profile(models.Model):
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     external_accounts = models.TextField(blank=True, null=True)  # JSON or comma-separated string can be used here.
-    age = models.PositiveIntegerField(blank=True, null=True)
+    age = models.CharField(blank=True, null=True,max_length=100)
     category_name = models.CharField(max_length=255, blank=True, null=True)
     possible_buying_interests = models.TextField(blank=True, null=True)
     interest_and_lifestyle_patterns = models.TextField(blank=True, null=True)
