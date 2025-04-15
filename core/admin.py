@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Profile,Post,PostMedia,PostText,Follow,Task,Location,Log,RequestLog,BulkCampaign,Audience,Output,Server,ChildBot
+from .models import Profile,Post,PostMedia,PostText,Follow,Task,Location,Log,RequestLog,BulkCampaign,Audience,Output,Server,ChildBot,Lock
 
 admin.site.register(PostText)
 admin.site.register(PostMedia)
@@ -36,3 +36,7 @@ class PostAdmin(admin.ModelAdmin):
     
 
 admin.site.register(Post,PostAdmin)
+
+class LockAdmin(admin.ModelAdmin):
+    list_display = (  'model_name','lock_type')
+admin.site.register(Lock,LockAdmin)  
