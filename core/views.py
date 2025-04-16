@@ -273,6 +273,7 @@ def provide(request):
             if data.get('lock_results'):
                 from core.models import Lock
                 lock_type=data.get('lock_type')
+                exclude_ids=[]
                 if lock_type=='data_point':
                     exclude_ids = Lock.objects.filter(
                             Q(model_name='profile',lock_type='service', locked_by_task__service=data.get('service')) |
