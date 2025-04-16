@@ -288,9 +288,11 @@ def provide(request):
                             Q(model_name='profile',lock_type='end_point', locked_by_task__end_point=data.get('end_point')) ).distinct().values_list('object_id', flat=True)
                 print(exclude_ids)
                 queryset=queryset.exclude(id__in=exclude_ids)
-                for obj in queryset:
-                    print('acquiring lock')
-                    obj.acquire_lock(task=task,lock_type=lock_type)
+                if lock_type:
+                    for obj in queryset:
+                       
+                        obj.acquire_lock(task=task,lock_type=lock_type):
+               
             results = []
             
             if data.get('count'):
