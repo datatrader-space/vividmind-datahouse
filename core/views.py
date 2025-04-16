@@ -239,7 +239,7 @@ def provide(request):
         
         method=data.get('method')
 
-        
+        print(data)
 
         task=Task.objects.all().filter(uuid=data['uuid'])
         if not task:
