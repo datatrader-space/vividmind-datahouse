@@ -242,6 +242,7 @@ def provide(request):
         print(data)
 
         task=Task.objects.all().filter(uuid=data['uuid'])
+        print(task)
         if not task:
             return JsonResponse(status=500,data={'authorized':False})
         else:
