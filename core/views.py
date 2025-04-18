@@ -291,7 +291,7 @@ def provide(request):
                 if lock_type:
                     for obj in queryset:
                        
-                        obj.acquire_lock(task=task,lock_type=lock_type):
+                        obj.acquire_lock(task=task,lock_type=lock_type)
                
             results = []
             
