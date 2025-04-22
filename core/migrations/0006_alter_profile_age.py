@@ -9,10 +9,4 @@ class Migration(migrations.Migration):
         ('core', '0005_alter_profile_id'),
     ]
 
-    operations = [
-        migrations.AlterField(
-            model_name='profile',
-            name='age',
-            field=models.CharField(blank=True, null=True),
-        ),
-    ]
+    

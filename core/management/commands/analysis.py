@@ -9,9 +9,17 @@ class Command(BaseCommand):
     help = 'Generates chart data from request logs and saves it to a PNG image file.'
 
     def handle(self, *args, **options):
-        from core.models import Profile,Follow
+        from core.models import Profile,Follow,Task
         from django.conf import settings
+        from django.forms import model_to_dict
         profiles=Profile.objects.all()
+        task=Task.objects.all().filter(uuid='fcef6842-e9fb-11ef-8988-047c1611323a')
+
+        for profile in profiles:
+          
+            
+            profile.release_lock(lock_type='service',task=task[0])
+        return
         for p in profiles:
             row=p.info
             update_fields=[ "gender",

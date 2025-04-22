@@ -239,10 +239,14 @@ def provide(request):
         
         method=data.get('method')
 
-        
+        print(data)
 
-        
-
+        task=Task.objects.all().filter(uuid=data['uuid'])
+        print(task)
+        if not task:
+            return JsonResponse(status=500,data={'authorized':False})
+        else:
+            task=task[0]
         filters=data.get('filters')
         print(data)
         try:
@@ -264,7 +268,31 @@ def provide(request):
                     return JsonResponse({"error": "Invalid filter payload"}, status=400)
                 queryset = queryset.filter(q)
 
-            print(len(queryset))
+          
+        
+            if data.get('lock_results'):
+                from core.models import Lock
+                lock_type=data.get('lock_type')
+                exclude_ids=[]
+                if lock_type=='data_point':
+                    exclude_ids = Lock.objects.filter(
+                            Q(model_name='profile',lock_type='service', locked_by_task__service=data.get('service')) |
+                            Q(model_name='profile',lock_type='end_point', locked_by_task__end_point=data.get('end_point')) |
+                            Q(model_name='profile',lock_type='data_point', locked_by_task__data_point=data.get('data_point'))
+                        ).distinct().values_list('object_id', flat=True)
+                elif lock_type=='service':
+                    exclude_ids = Lock.objects.filter(model_name='profile',lock_type='service', locked_by_task__service=data.get('service')).distinct().values_list('object_id', flat=True)
+                elif lock_type=='end_point':
+                            exclude_ids = Lock.objects.filter(
+                            Q(model_name='profile',lock_type='service', locked_by_task__service=data.get('service')) |
+                            Q(model_name='profile',lock_type='end_point', locked_by_task__end_point=data.get('end_point')) ).distinct().values_list('object_id', flat=True)
+                print(exclude_ids)
+                queryset=queryset.exclude(id__in=exclude_ids)
+                if lock_type:
+                    for obj in queryset:
+                       
+                        obj.acquire_lock(task=task,lock_type=lock_type)
+               
             results = []
             
             if data.get('count'):
@@ -320,9 +348,16 @@ def provide(request):
             if data.get('size'):
                 size=data.get('size')
                 queryset=queryset[0:size]
+            if data.get('delete'):
+                if object_type=='lock':
+                    count=len(queryset)
+                    queryset.delete()
+                    return JsonResponse(data={'data':[],'count':count,'deleted':True},status=200)
             print(len(queryset))
+            print(required_fields)
             for obj in queryset:
                 data_dict = {}
+       
                 if required_fields:
                     for field in required_fields:
                         try:
@@ -355,8 +390,9 @@ def provide(request):
                             else:
                                 data_dict[field] = getattr(obj, field) # Regular field
                         except AttributeError:
-                            required_fields.remove(field) # remove field from required fields
-
+                            continue
+                            
+                           
                         
                             
 
@@ -365,7 +401,7 @@ def provide(request):
                 else:  # Default behavior (include all fields)
                   
                     for field in [f.name for f in obj._meta.fields]:
-                       
+                     
                         if type(getattr(obj, field))==dict:
                             pass
                             data_dict[field]=getattr(obj, field)
@@ -375,11 +411,13 @@ def provide(request):
                 results.append(data_dict)
 
             #print(results)
+
             return JsonResponse({"data": results}, status=200)
 
         except Exception as e:
             print(f"An error occurred: {e}")
             return JsonResponse({"error": "An error occurred"}, status=500)  
+        
 from django.db import models
 
 def serialize_related_fields(queryset, required_fields=None):

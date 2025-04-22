@@ -12,6 +12,134 @@ SERVICES = (
     ('openai','OpenAI'),
     ('audience','Audience')
 )
+from enum import Enum
+from typing import Optional, Any
+class Task(models.Model):
+    uuid=models.UUIDField(blank=False,null=False,unique=True)
+    ref_id=models.UUIDField(blank=True,null=True)
+    data_point=models.CharField(blank=True,null=True,max_length=100)
+    end_point=models.CharField(blank=True,null=True,max_length=100)
+    service=models.CharField(blank=True,null=True,max_length=100)
+    status=models.CharField(blank=True,null=True,max_length=100)
+    def __str__(self):
+        return str(self.uuid)
+class LockType(models.TextChoices):
+    SERVICE = 'service', 'Service'
+    DATA_POINT = 'data_point', 'Data Point'
+    ENDPOINT = 'end_point', 'Endpoint'
+    CAMPAIGN_JOB = 'campaign_job', 'Campaign/Job'
+class Lock(models.Model):
+    model_name = models.CharField(max_length=100, help_text="The name of the data model (e.g., 'result', 'customer').")
+    object_id = models.CharField(max_length=255, db_index=True, help_text="The unique identifier of the object being locked.")
+    lock_type = models.CharField(max_length=20, choices=LockType.choices, db_index=True, help_text="The level at which the lock is acquired.")
+    locked_by_task = models.ForeignKey(Task, on_delete=models.CASCADE, help_text="The ID of the task that holds the lock.")
+    lock_datetime = models.DateTimeField(auto_now_add=True, help_text="The date and time when the lock was acquired.")
+    associated_value = models.CharField(max_length=255, blank=True, null=True, db_index=True, help_text="An optional value associated with the lock type (e.g., service name, data point ID).")
+
+    class Meta:
+        unique_together = ('model_name', 'object_id', 'lock_type', 'associated_value')
+        indexes = [
+            models.Index(fields=['model_name', 'object_id', 'lock_type']),
+            models.Index(fields=['locked_by_task']),
+        ]
+
+    def __str__(self):
+        return f"Lock on {self.model_name} ID '{self.object_id}' ({self.get_lock_type_display()}) by task '{self.locked_by_task}'"
+
+
+class LockingService:
+    @staticmethod
+    def acquire_lock(model_name: str, object_id: str, lock_type: LockType, task_id: str, associated_value: Optional[str] = None) -> bool:
+        """
+        Attempts to acquire a lock on a specific object at a given level.
+
+        Args:
+            model_name: The name of the data model.
+            object_id: The unique identifier of the object being locked.
+            lock_type: The level at which the lock is being acquired (e.g., LockType.SERVICE).
+            task_id: The ID of the task attempting to acquire the lock.
+            associated_value: An optional value associated with the lock type.
+
+        Returns:
+            True if the lock was successfully acquired, False otherwise.
+        """
+        
+class BaseModel(models.Model):
+    class Meta:
+        abstract = True
+ 
+    def acquire_lock(self,
+     lock_type, task , associated_value: Optional[str] = None) -> bool:
+
+        try:
+                Lock.objects.create(
+                    model_name=self._meta.model_name,
+                    object_id=self.id,
+                    lock_type=lock_type,
+                    locked_by_task=task,
+                    associated_value=associated_value
+                )
+                print(f"Lock acquired by task '{task.id}' on {self._meta.model_name} with ID '{self.id}' at {lock_type} level (value: {associated_value}).")
+                return True
+        except Exception as e:
+            print(f"Failed to acquire lock by task '{task.id}' on {self._meta.model_name} with ID '{self.id}' at {lock_type} level (value: {associated_value}). Error: {e}")
+            return False
+        
+
+    def release_lock(self, task, lock_type = None, associated_value: Optional[str] = None) -> bool:
+        """
+        Releases a lock held by a specific task.
+
+        Args:
+            model_name: The name of the data model.
+            object_id: The unique identifier of the object.
+            task_id: The ID of the task releasing the lock.
+            lock_type: (Optional) The specific lock type to release.
+            associated_value: (Optional) The associated value for the lock type.
+
+        Returns:
+            True if the lock was successfully released, False otherwise.
+        """
+        filters = {
+            'model_name': self._meta.model_name,
+            'object_id': self.id,
+            'locked_by_task': task,
+        }
+        if lock_type:
+            filters['lock_type'] = lock_type
+        if associated_value is not None:
+            filters['associated_value'] = associated_value
+
+        deleted_count, _ = Lock.objects.filter(**filters).delete()
+        if deleted_count > 0:
+            print(f"Released {deleted_count} lock(s) by task '{task.id}' on {self._meta.model_name} with ID '{self.id}'.")
+            return True
+        else:
+            print(f"No lock found held by task '{task.id}' on {self._meta.model_name} with ID '{self.id}' (and specified criteria).")
+            return False
+
+    @staticmethod
+    def is_locked( self,lock_type, associated_value: Optional[str] = None) -> bool:
+        """
+        Checks if an object is currently locked at the specified level with the given associated value.
+
+        Args:
+            model_name: The name of the data model.
+            object_id: The unique identifier of the object.
+            lock_type: The level at which to check the lock.
+            associated_value: The associated value.
+
+        Returns:
+            True if the object is locked, False otherwise.
+        """
+        query = Lock.objects.filter(
+            model_name=self._meta.model_name,
+            object_id=self.id,
+            lock_type=lock_type,
+            associated_value=associated_value
+        )
+        return query.exists()
+
 class Device(models.Model):
     uuid=models.UUIDField(blank=False,null=False,unique=True)
 class Server(models.Model):
@@ -20,11 +148,7 @@ class Proxy(models.Model):
     uuid=models.UUIDField(blank=False,null=False,unique=True)
 class Interaction(models.Model):
     uuid=models.UUIDField(blank=False,null=False,unique=True)
-class Task(models.Model):
-    uuid=models.UUIDField(blank=False,null=False,unique=True)
-    ref_id=models.UUIDField(blank=True,null=True)
-    def __str__(self):
-        return str(self.uuid)
+
 class ScrapeTask(models.Model):
     uuid=models.UUIDField(blank=False,null=False,unique=True)
 
@@ -43,7 +167,7 @@ class Audience(models.Model):
 class ChildBot(models.Model):
     uuid=models.UUIDField(blank=False,null=False,unique=True)
     campaign=models.ForeignKey(BulkCampaign,blank=True,null=True,on_delete=models.SET_NULL)
-class Profile(models.Model):
+class Profile(BaseModel):
     username=models.CharField(blank=False,null=False,max_length=100)
     info=models.JSONField(default={},blank=False,null=True)
     profile_picture = models.CharField(blank=True,null=True,max_length=300)
@@ -109,7 +233,7 @@ class Location(models.Model):
         unique_together = ('rest_id', 'service') 
     def __str__(self):
         return self.name
-class Post(models.Model):
+class Post(BaseModel):
     service=models.CharField(blank=False,null=False,choices=SERVICES,max_length=50,default='instagram')
     code=models.CharField(blank=False,null=False,unique=True,max_length=500)
     location=models.ForeignKey(Location,blank=True,null=True,on_delete=models.SET_NULL)
@@ -121,7 +245,7 @@ class Post(models.Model):
 
 from django.utils.crypto import get_random_string
 
-class PostMedia(models.Model):
+class PostMedia(BaseModel):
     post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='medias')
     file_type = models.CharField(max_length=50, choices=[('image', 'Image'), ('video', 'Video')], default='image')
     
@@ -149,7 +273,7 @@ class Follow(models.Model):
 
 from django.utils.crypto import get_random_string
 
-class ProfileText(models.Model):
+class ProfileText(BaseModel):
     
     
     uuid = models.UUIDField(default=ud.uuid4,editable=False)
@@ -157,7 +281,7 @@ class ProfileText(models.Model):
     Profile = models.OneToOneField(Profile, on_delete=models.CASCADE, related_name='profile_text')
     tasks=models.ManyToManyField(Task)
 
-class PostText(models.Model):
+class PostText(BaseModel):
     uuid = models.UUIDField(default=ud.uuid4,editable=False)
     content = models.TextField()
     post = models.OneToOneField(Post, on_delete=models.CASCADE, related_name='text') 
@@ -168,14 +292,14 @@ class CommentText(models.Model):
     content = models.TextField()
     comment = models.OneToOneField(Comment, on_delete=models.CASCADE, related_name='text') 
     tasks=models.ManyToManyField(Task)
-class LeadAssignment(models.Model):
+class LeadAssignment(BaseModel):
     Profile = models.OneToOneField(Profile, on_delete=models.CASCADE)
     bot = models.ForeignKey(ChildBot, on_delete=models.SET_NULL, null=True, blank=True)
     locked_at = models.DateTimeField(null=True, blank=True)
     last_interaction_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=50, choices=[('pending', 'Pending'), ('processed', 'Processed'), ('failed', 'Failed')], default='pending')
 
-class Log(models.Model):
+class Log(BaseModel):
     """
     Represents a log entry associated with a task. 
     Each log entry can be associated with only one output.
@@ -191,7 +315,7 @@ class Log(models.Model):
     def __str__(self):
         return f"{self.type} for {self.bot_username} - {self.task}" 
 
-class Output(models.Model):
+class Output(BaseModel):
     """
     Represents an output associated with a task. 
     A task can have multiple outputs.
@@ -210,7 +334,7 @@ class Output(models.Model):
 from django.db import models
 from django.utils import timezone
 
-class RequestLog(models.Model):
+class RequestLog(BaseModel):
     datetime = models.DateTimeField(blank=False,null=False) # Store timestamp in milliseconds
     request_record_type = models.CharField(max_length=50)
     service = models.CharField(max_length=100)
@@ -238,3 +362,6 @@ class AnalysisResult(models.Model):
 
     class Meta:
         ordering = ['-datetime'] # Order by latest analysis first
+
+
+

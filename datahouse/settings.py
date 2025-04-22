@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-czxoo5)^ld#*@-208eng2(i_ydvn)%bnv#ss9_)&5ywq54_q83
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "208.109.241.136",
+    "192.168.1.30",
     "localhost",
     "127.0.0.1",
     "api.ipify.org"
@@ -78,14 +78,14 @@ WSGI_APPLICATION = 'datahouse.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-""" DATABASES = {
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-} """
+} 
 from decouple import config
-DATABASES = {
+""" DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': config('DB_NAME'),
@@ -95,7 +95,7 @@ DATABASES = {
         'PORT': '5432',
         #'ATOMIC_REQUESTS': True,
     }
-}
+} """
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
@@ -148,8 +148,8 @@ DATA_UPLOAD_MAX_MEMORY_SIZE=None
 
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-STORAGE_HOUSE_URL='http://208.109.246.14:8080/'
+STORAGE_HOUSE_URL='https://408d-2400-adc5-491-1500-291a-6b43-9f7a-3c36.ngrok-free.app/'
 CSRF_TRUSTED_ORIGINS = [
-    'http://208.109.241.136:8080',
+    'http://192.168.1.30',
     'http://localhost'
 ]

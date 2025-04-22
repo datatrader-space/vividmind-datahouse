@@ -13,6 +13,5 @@ IF EXIST "requirements.txt" (
 
 REM Start Django development server (replace 'yourproject' with your project name)
 START "" python manage.py runserver 0.0.0.0:80 
-START "" ngrok http 80
-python main.py
+
 PAUSE
