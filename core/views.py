@@ -367,7 +367,8 @@ def provide(request):
                     for field in [f.name for f in obj._meta.fields]:
                        
                         if type(getattr(obj, field))==dict:
-                            data_dict.update(**getattr(obj, field))
+                            pass
+                            data_dict[field]=getattr(obj, field)
                         else:
                             data_dict[field] = getattr(obj, field)
                 
@@ -604,7 +605,7 @@ def json_to_django_q(payload, model):
 
     if not payload or not isinstance(payload, dict):
         return None, None, None  # Handle invalid payload
-
+   
     try:
         for key, value in payload.items():
             if key in ("or_conditions", "and_conditions", "exclude"):
