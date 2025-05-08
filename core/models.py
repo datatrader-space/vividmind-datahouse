@@ -184,7 +184,7 @@ class Profile(BaseModel):
         ('O', 'Other'),
         ('U', 'Unknown'),
     ]
-    gender = models.CharField(max_length=100, choices=GENDER_CHOICES, blank=True, null=True)
+    gender = models.CharField(max_length=100, blank=True, null=True)
     country = models.CharField(max_length=100, blank=True, null=True)
     city = models.CharField(max_length=100, blank=True, null=True)
     interests = models.TextField(blank=True, null=True)

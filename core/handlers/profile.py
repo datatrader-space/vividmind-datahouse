@@ -29,14 +29,35 @@ def handle_instagram_profile(row,task):
             p.rest_id=row[key]
             p.info[key]=row[key]
             continue
+        
+        
         if key =='followers_count':
-            p.followers_count=row.get('follower_count') if row.get('follower_count') else row.get('followers_count',None)
+            f_count=False
+            if row.get('followers_count'):
+                f_count=row.get('followers_count')
+            elif row.get('follower_count'):
+                f_count=row.get('follower_count')
+            if f_count:
+                p.followers_count=f_count
             continue
         if key =='followings_count':
-            p.followings_count=row.get('following_count') if row.get('following_count') else row.get('following_count',None)
+            f_count=False
+            if row.get('followings_count'):
+                f_count=row.get('followings_count')
+            elif row.get('following_count'):
+                f_count=row.get('following_count')
+            if f_count:
+                p.followings_count=f_count
+            
             continue
         if key =='post_count':
-            p.post_count=row.get('media_count') if row.get('media_count') else row.get('post_count',None)
+            f_count=False
+            if row.get('media_count'):
+                f_count=row.get('media_count')
+            elif row.get('post_count'):
+                f_count=row.get('post_count')
+            if f_count:
+                p.post_count=f_count
             continue
         
         if key=='name' and len(str(row[key]))>1:

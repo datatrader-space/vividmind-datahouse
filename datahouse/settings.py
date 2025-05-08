@@ -26,10 +26,8 @@ SECRET_KEY = 'django-insecure-czxoo5)^ld#*@-208eng2(i_ydvn)%bnv#ss9_)&5ywq54_q83
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "192.168.1.30",
-    "localhost",
-    "127.0.0.1",
-    "api.ipify.org"
+    "208.109.241.136",
+    
 ]
 
 # Application definition
@@ -148,8 +146,8 @@ DATA_UPLOAD_MAX_MEMORY_SIZE=None
 
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-STORAGE_HOUSE_URL='https://408d-2400-adc5-491-1500-291a-6b43-9f7a-3c36.ngrok-free.app/'
+STORAGE_HOUSE_URL='https://b8fd-2603-3-610c-1060-00.ngrok-free.app/'
 CSRF_TRUSTED_ORIGINS = [
-    'http://192.168.1.30',
+    'http://208.109.241.136:8080',
     'http://localhost'
 ]

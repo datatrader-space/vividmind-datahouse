@@ -664,7 +664,8 @@ def json_to_django_q(payload, model):
                     elif key == "and_conditions":
                         sub_q &= condition_q
                     elif key == "exclude":
-                        sub_q &= ~condition_q
+                        sub_q |= condition_q
+                        print(sub_q)
 
                 if key == "or_conditions":
                     q_object |= sub_q
@@ -672,6 +673,7 @@ def json_to_django_q(payload, model):
                     q_object &= sub_q
                 elif key == "exclude":
                     q_object &= ~sub_q
+                    print(q_object)
 
             elif key == "order_by":
                 if not isinstance(value, list):
