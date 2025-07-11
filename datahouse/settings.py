@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-czxoo5)^ld#*@-208eng2(i_ydvn)%bnv#ss9_)&5ywq54_q83
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "208.109.241.136",
+    "192.168.1.88",
     
 ]
 
@@ -76,14 +76,14 @@ WSGI_APPLICATION = 'datahouse.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-DATABASES = {
+""" DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-} 
+}  """
 from decouple import config
-""" DATABASES = {
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': config('DB_NAME'),
@@ -93,7 +93,7 @@ from decouple import config
         'PORT': '5432',
         #'ATOMIC_REQUESTS': True,
     }
-} """
+} 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
