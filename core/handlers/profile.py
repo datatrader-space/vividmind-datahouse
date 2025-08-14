@@ -69,9 +69,14 @@ def handle_instagram_profile(row,task):
            
             if key=='profile_picture' :
                 if row.get(key,{}):
-                    if row.get(key,{}).get('storage_house_file_path'):
-                        p.profile_picture=row[key]['storage_house_file_path']
-                        p.info[key]=row[key]['storage_house_file_path']
+                    import ast
+                    if type(row.get(key))==str:
+                        profile_picture=ast.literal_eval(row.get(key))
+                    else: 
+                        profile_picture=row.get(key)
+                    if profile_picture.get('storage_house_file_path'):
+                        p.profile_picture=profile_picture['storage_house_file_path']
+                        p.info[key]=profile_picture['storage_house_file_path']
 
             elif type(row[key])==bool:
                 p.__setattr__(key,row[key])

@@ -27,6 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "192.168.1.88",
+    "192.168.1.107"
     
 ]
 
@@ -149,5 +150,6 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 STORAGE_HOUSE_URL='https://b8fd-2603-3-610c-1060-00.ngrok-free.app/'
 CSRF_TRUSTED_ORIGINS = [
     'http://208.109.241.136:8080',
-    'http://localhost'
+    'http://localhost',
+    "http://192.168.1.107"
 ]

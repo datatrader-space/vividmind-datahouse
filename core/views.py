@@ -41,13 +41,15 @@ def consume(request):
             if not type(row)==dict:
                 try:
                     row=json.loads(row)##add logging here
-                except Exception as e:
+                except Exception as e: 
                     continue
+            print(row)
             task=Task.objects.all().filter(uuid=row['task_uuid'])
             if task:
                 task=task[0]
             else:
-                task=Task(uuid=row['task_uuid'])
+               
+                task=Task(**{'uuid':row['task_uuid']})
                 task.save()
             if row.get('service'):
                 service=row.get('service')

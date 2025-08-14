@@ -179,10 +179,10 @@ class Profile(BaseModel):
     is_private = models.BooleanField(default=False)
     bio = models.TextField(blank=True, null=True)
     GENDER_CHOICES = [
-        ('M', 'Male'),
-        ('F', 'Female'),
-        ('O', 'Other'),
-        ('U', 'Unknown'),
+        ('Male', 'Male'),
+        ('Female', 'Female'),
+        ('Transgender', 'Transgender'),
+        ('Unknown', 'Unknown'),
     ]
     gender = models.CharField(max_length=100, blank=True, null=True)
     country = models.CharField(max_length=100, blank=True, null=True)
