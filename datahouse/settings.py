@@ -152,9 +152,10 @@ DATA_UPLOAD_MAX_MEMORY_SIZE=None
 
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-STORAGE_HOUSE_URL='https://b8fd-2603-3-610c-1060-00.ngrok-free.app/'
+STORAGE_HOUSE_URL='http://50.18.253.181/'
 CSRF_TRUSTED_ORIGINS = [
     'http://208.109.241.136:8080',
     'http://localhost',
     "http://192.168.1.107"
+    "http://13.56.141.19/"
 ]
