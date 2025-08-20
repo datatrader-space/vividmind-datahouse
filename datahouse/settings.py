@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-czxoo5)^ld#*@-208eng2(i_ydvn)%bnv#ss9_)&5ywq54_q83
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["13.56.141.19"]
 
 # Application definition
 
@@ -76,12 +76,12 @@ WSGI_APPLICATION = 'datahouse.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-# """ DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }  """
+""" DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}  """
 # from decouple import config
 # DATABASES = {
 #     'default': {
@@ -157,5 +157,5 @@ CSRF_TRUSTED_ORIGINS = [
     'http://208.109.241.136:8080',
     'http://localhost',
     "http://192.168.1.107"
-    "http://13.56.141.19/"
+
 ]

@@ -34,6 +34,7 @@ def consume(request):
         from django.forms import model_to_dict
       
         data = json.loads(request.body) 
+        print(data)
        
         
         for row in data['data']:
@@ -81,6 +82,8 @@ def consume(request):
                         from core.handlers.output import handle_output
                         handle_output(row)
         return JsonResponse(data={'status':'success'} ,status=status.HTTP_200_OK)
+    
+
 @csrf_exempt             
 @api_view(['POST'])
 def sync(request):
